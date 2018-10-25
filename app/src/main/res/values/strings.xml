@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MyWeather_v2</string>
+
+    <string name="autocomplete_hint">Enter place name or address</string>
+    <string name="selected_place">Last Selected Place:</string>
+    <string name="clear_text">Clear Text</string>
+    <string name="place_details">&lt;b&gt;%1$s&lt;/b&gt;&lt;br/&gt;&lt;i&gt;</string>
+</resources>
