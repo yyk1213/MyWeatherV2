@@ -62,7 +62,19 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         initView();
 
-        checkPermission();
+        if(checkPermission()){
+
+            checkLocation();
+
+            reverseAddress();
+
+            //날씨 값 가져오기
+            mWeatherData.getWeatherAPIData(mLatitude, mLongitude);
+            //선택 지수 값 가져오기
+            mWeatherData.getIndexData(mLatitude, mLongitude);
+            //보건 지수 가져오기
+            //mWeatherData.getHealthIndex();
+        }
     }
 
     private boolean checkPermission() {
@@ -80,10 +92,11 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_PERMISSIONS_REQUEST);
+            return false;
+
+        }else{
 
             return true;
-        } else {
-            return false;
         }
     }
 
@@ -101,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         String message = alertMessage;
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
         switch (message) {
             case NETWORK_REQUEST_MESSAGE:
                 alertDialogBuilder.setMessage(NETWORK_REQUEST_MESSAGE)
@@ -110,9 +124,6 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
                                 checkPermission();
                             }
                         }).create();
-
-                alertDialogBuilder.show();
-
                 break;
             case LOCATION_REQUEST_MESSAGE:
                 alertDialogBuilder.setMessage(LOCATION_REQUEST_MESSAGE)
@@ -123,10 +134,10 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
                             }
                         })
                         .create();
-
-                alertDialogBuilder.show();
                 break;
         }
+
+        alertDialogBuilder.show();
     }
 
     @Override
