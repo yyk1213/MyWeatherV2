@@ -10,7 +10,6 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
-import android.os.health.PackageHealthStats;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
@@ -26,7 +25,7 @@ import android.widget.TextView;
 
 import com.example.yeon1213.myweather_v2.adapter.MainIndexAdapter;
 import com.example.yeon1213.myweather_v2.interfaces.DataResponseListener;
-import com.example.yeon1213.myweather_v2.interfaces.PermissionResponseListener;
+import com.example.yeon1213.myweather_v2.interfaces.ResponseListener;
 import com.example.yeon1213.myweather_v2.network.WeatherData;
 import com.example.yeon1213.myweather_v2.R;
 
@@ -37,7 +36,7 @@ import java.util.List;
 import static android.util.Log.e;
 import static com.example.yeon1213.myweather_v2.activity.LifeIndexActivity.EXTRA_ACTIVITY_POSITION;
 
-public class MainActivity extends AppCompatActivity implements DataResponseListener, PermissionResponseListener {
+public class MainActivity extends AppCompatActivity implements DataResponseListener, ResponseListener {
 
     public static final String EXTRA_LATITUDE = "com.example.yeon1213.myweather_v2.Data.Alarm.mLatitude";
     public static final String EXTRA_LONGITUDE = "com.example.yeon1213.myweather_v2.Data.Alarm.longtitude";
@@ -47,9 +46,9 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
     public static final int LOCATION_PERMISSIONS_REQUEST = 0;
 
     private TextView tv_Temperature, tv_FineDust, tv_Precipitation, tv_Humidity, tv_Wind, tv_CurrentLocation;
-    private RecyclerView mMainRecyclerView;
-    private MainIndexAdapter mMainAdapter;
-    private RecyclerView.LayoutManager mMainLayoutManager;
+    private RecyclerView rv_MainIndex;
+    private MainIndexAdapter adt_MainIndex;
+    private RecyclerView.LayoutManager lay_MainIndex;
 
     private List<String> mRecyclerLivingData;
     private WeatherData mWeatherData;
@@ -62,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         initView();
 
-        if(checkPermission()){
+        if (checkPermission()) {
 
             checkLocation();
 
@@ -75,6 +74,27 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
             //보건 지수 가져오기
             //mWeatherData.getHealthIndex();
         }
+    }
+
+    private void initView() {
+        tv_Temperature = findViewById(R.id.temperature);
+        tv_FineDust = findViewById(R.id.fine_dust);
+        tv_Precipitation = findViewById(R.id.precipitation);
+        tv_Humidity = findViewById(R.id.humidity);
+        tv_Wind = findViewById(R.id.wind);
+        tv_CurrentLocation = findViewById(R.id.current_location);
+
+        rv_MainIndex = findViewById(R.id.main_recycler_view);
+        rv_MainIndex.setHasFixedSize(true);
+        lay_MainIndex = new LinearLayoutManager(getApplicationContext());
+        rv_MainIndex.setLayoutManager(lay_MainIndex);
+
+        //데이터 생성
+        mRecyclerLivingData = new ArrayList<>();
+        mWeatherData = new WeatherData();
+        mWeatherData.setContext(this);
+        //리스너 등록
+        mWeatherData.setListener(this);
     }
 
     private boolean checkPermission() {
@@ -94,10 +114,20 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
                     LOCATION_PERMISSIONS_REQUEST);
             return false;
 
-        }else{
+        } else {
 
             return true;
         }
+    }
+
+    private boolean isNetworkAvailable() {
+
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+
+        boolean isNetworkAvailable = cm.getActiveNetworkInfo() != null;
+        boolean isNetworkConnected = isNetworkAvailable && cm.getActiveNetworkInfo().isConnected();
+        //네트워크 연결 안될 시 팝업창 뜨게 하기
+        return isNetworkConnected;
     }
 
     @Override
@@ -152,9 +182,9 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
     @Override
     public void onIndexResponseAvailable() {
         mRecyclerLivingData = mWeatherData.getLivingData();
-        mMainAdapter = new MainIndexAdapter(getApplicationContext(), mRecyclerLivingData);
-        mMainRecyclerView.setAdapter(mMainAdapter);
-        mMainAdapter.notifyDataSetChanged();
+        adt_MainIndex = new MainIndexAdapter(getApplicationContext(), mRecyclerLivingData);
+        rv_MainIndex.setAdapter(adt_MainIndex);
+        adt_MainIndex.notifyDataSetChanged();
     }
 
     private void reverseAddress() {
@@ -215,14 +245,12 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == LOCATION_PERMISSIONS_REQUEST) {
-            if(grantResults.length==2 && grantResults[0]== PackageManager.PERMISSION_GRANTED && grantResults[1]==PackageManager.PERMISSION_GRANTED){
+            if (grantResults.length == 2 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                 checkLocation();
                 reverseAddress();
 
                 onPermissionChecked();
-            }
-
-            else{
+            } else {
                 showAlert(LOCATION_REQUEST_MESSAGE);
             }
         }
@@ -255,27 +283,6 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         return true;
     }
 
-    private void initView() {
-        tv_Temperature = findViewById(R.id.temperature);
-        tv_FineDust = findViewById(R.id.fine_dust);
-        tv_Precipitation = findViewById(R.id.precipitation);
-        tv_Humidity = findViewById(R.id.humidity);
-        tv_Wind = findViewById(R.id.wind);
-        tv_CurrentLocation = findViewById(R.id.current_location);
-
-        mMainRecyclerView = findViewById(R.id.main_recycler_view);
-        mMainRecyclerView.setHasFixedSize(true);
-        mMainLayoutManager = new LinearLayoutManager(getApplicationContext());
-        mMainRecyclerView.setLayoutManager(mMainLayoutManager);
-
-        //데이터 생성
-        mRecyclerLivingData = new ArrayList<>();
-        mWeatherData = new WeatherData();
-        mWeatherData.setContext(this);
-        //리스너 등록
-        mWeatherData.setListener(this);
-    }
-
     private void checkLocation() {
         //들어온 인텐트 값이 있으면
         if ((getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0) != 0.0) && (getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0) != 0.0)) {
@@ -297,10 +304,16 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         @Override
         public void onLocationChanged(Location location) {
-            mLocation.set(location);
+            if(location !=null) {
+                mLocation.set(location);
 
-            mLatitude = mLocation.getLatitude();
-            mLongitude = mLocation.getLongitude();
+                mLatitude = mLocation.getLatitude();
+                mLongitude = mLocation.getLongitude();
+            }
+            else{
+                //null일 경우
+                
+            }
         }
 
         @Override
@@ -319,76 +332,51 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         }
     }
 
+    @Override
+    public void onLocationChecked(LocationManager locationManager) {
+
+        Location locations = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        mLatitude = locations.getLatitude();
+        mLongitude = locations.getLongitude();
+    }
+
     private void getCurrentLocation() {
 
         //위치 매니저 초기화
         LocationManager mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        LocationListener[] mLocationListeners = new LocationListener[]{
-                new LocationListener(LocationManager.GPS_PROVIDER),
-                new LocationListener(LocationManager.NETWORK_PROVIDER)
-        };
+        LocationListener mLocationListener = new LocationListener(LocationManager.NETWORK_PROVIDER);
 
         try {
-            //GPS 제공자 정보가 바뀌면 콜백하도록 리스너 등록
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 1, mLocationListeners[0]);
+            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 1, mLocationListener); //위치가 업데이트 되는 간격이 10초까지 걸릴 수 있다. null이 올 확률이 있다.
         } catch (java.lang.SecurityException ex) {
             Log.i(TAG, "fail to request location update, ignore", ex);
         } catch (IllegalArgumentException ex) {
             Log.d(TAG, "network provider does not exist, " + ex.getMessage());
         }
-
+        if (mLocationListener.mLocation != null) {
+            onLocationChecked(mLocationManager);
+        }
+        //위치정보 미 수신할 때 자원해제-- 위치 정보를 업데이트 받고나서, 자원해제 하기 때문에 null값은 안들어올 것
         try {
-            //GPS 제공자 정보가 바뀌면 콜백하도록 리스너 등록
-            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 1, mLocationListeners[1]);
-        } catch (java.lang.SecurityException ex) {
-            Log.i(TAG, "fail to request location update, ignore", ex);
-        } catch (IllegalArgumentException ex) {
-            Log.d(TAG, "network provider does not exist, " + ex.getMessage());
+            mLocationManager.removeUpdates(mLocationListener);
+        } catch (Exception ex) {
+            Log.i(TAG, "fail to remove location listners, ignore", ex);
         }
-
-        //최근 위치 정보 확인
-        Location[] locations = {mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER),
-                mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)};
-
-        for (int i = 0; i < locations.length; i++) {
-            if (locations[i] != null) {
-                mLatitude = locations[i].getLatitude();
-                mLongitude = locations[i].getLongitude();
-            }
-        }
-
-        //위치정보 미 수신할 때 자원해제
-        if (mLocationManager != null) {
-            for (int i = 0; i < mLocationListeners.length; i++) {
-                try {
-                    mLocationManager.removeUpdates(mLocationListeners[i]);
-                } catch (Exception ex) {
-                    Log.i(TAG, "fail to remove location listners, ignore", ex);
-                }
-            }
-        }
-    }
-
-    private boolean isNetworkAvailable() {
-
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-
-        boolean isNetworkAvailable = cm.getActiveNetworkInfo() != null;
-        boolean isNetworkConnected = isNetworkAvailable && cm.getActiveNetworkInfo().isConnected();
-        //네트워크 연결 안될 시 팝업창 뜨게 하기
-        return isNetworkConnected;
     }
 
     private void changeLocation() {
 
-        getCurrentLocation();
-        reverseAddress();
-        mRecyclerLivingData.clear();
+        if (checkPermission()) {
+            getCurrentLocation();
+            reverseAddress();
+            mRecyclerLivingData.clear();
 
-        //날씨 값 가져오기
-        mWeatherData.getWeatherAPIData(mLatitude, mLongitude);
-        //선택 지수 값 가져오기
-        mWeatherData.getIndexData(mLatitude, mLongitude);
+            //날씨 값 가져오기
+            mWeatherData.getWeatherAPIData(mLatitude, mLongitude);
+            //선택 지수 값 가져오기
+            mWeatherData.getIndexData(mLatitude, mLongitude);
+        }
     }
 }
