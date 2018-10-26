@@ -74,14 +74,12 @@ public class AlarmReceiver extends BroadcastReceiver implements DataResponseList
         mLocationDatabase = LocationDatabase.getDataBase(context);
         mId = intent.getIntExtra(EXTRA_ALARM_ID, 0);
 
-        mWeatherData = new WeatherData();
-
         LocationData locationData = mLocationDatabase.getLocationDAO().getData(mId);
 
         double latitude = locationData.getMLatitude();
         double longitude = locationData.getMLongitude();
 
-        mWeatherData.getWeatherAPIData(latitude, longitude);
+        mWeatherData = new WeatherData(mContext, latitude,longitude,this);
 
         mLocationName = locationData.getMLocation_name();
 
@@ -92,10 +90,7 @@ public class AlarmReceiver extends BroadcastReceiver implements DataResponseList
         main_intent.putExtra(EXTRA_LATITUDE, latitude);
         main_intent.putExtra(EXTRA_LONGITUDE, longitude);
 
-
         mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         mPendingIntent = PendingIntent.getActivity(context, 2, main_intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        mWeatherData.setListener(this);
     }
 }

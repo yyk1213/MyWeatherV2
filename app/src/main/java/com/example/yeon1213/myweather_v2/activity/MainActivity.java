@@ -22,10 +22,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.yeon1213.myweather_v2.adapter.MainIndexAdapter;
 import com.example.yeon1213.myweather_v2.interfaces.DataResponseListener;
-import com.example.yeon1213.myweather_v2.interfaces.ResponseListener;
 import com.example.yeon1213.myweather_v2.network.WeatherData;
 import com.example.yeon1213.myweather_v2.R;
 
@@ -36,7 +36,7 @@ import java.util.List;
 import static android.util.Log.e;
 import static com.example.yeon1213.myweather_v2.activity.LifeIndexActivity.EXTRA_ACTIVITY_POSITION;
 
-public class MainActivity extends AppCompatActivity implements DataResponseListener, ResponseListener {
+public class MainActivity extends AppCompatActivity implements DataResponseListener {
 
     public static final String EXTRA_LATITUDE = "com.example.yeon1213.myweather_v2.Data.Alarm.mLatitude";
     public static final String EXTRA_LONGITUDE = "com.example.yeon1213.myweather_v2.Data.Alarm.longtitude";
@@ -67,12 +67,8 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
             reverseAddress();
 
-            //날씨 값 가져오기
-            mWeatherData.getWeatherAPIData(mLatitude, mLongitude);
-            //선택 지수 값 가져오기
-            mWeatherData.getIndexData(mLatitude, mLongitude);
-            //보건 지수 가져오기
-            //mWeatherData.getHealthIndex();
+            //mWeatherData.getAPIData(mLatitude, mLongitude);
+            getData();
         }
     }
 
@@ -91,10 +87,6 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         //데이터 생성
         mRecyclerLivingData = new ArrayList<>();
-        mWeatherData = new WeatherData();
-        mWeatherData.setContext(this);
-        //리스너 등록
-        mWeatherData.setListener(this);
     }
 
     private boolean checkPermission() {
@@ -126,18 +118,8 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         boolean isNetworkAvailable = cm.getActiveNetworkInfo() != null;
         boolean isNetworkConnected = isNetworkAvailable && cm.getActiveNetworkInfo().isConnected();
-        //네트워크 연결 안될 시 팝업창 뜨게 하기
-        return isNetworkConnected;
-    }
 
-    @Override
-    public void onPermissionChecked() {
-        //날씨 값 가져오기
-        mWeatherData.getWeatherAPIData(mLatitude, mLongitude);
-        //선택 지수 값 가져오기
-        mWeatherData.getIndexData(mLatitude, mLongitude);
-        //보건 지수 가져오기
-        //mWeatherData.getHealthIndex();
+        return isNetworkConnected;
     }
 
     private void showAlert(String alertMessage) {
@@ -170,6 +152,41 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         alertDialogBuilder.show();
     }
 
+    private void checkLocation() {
+        //들어온 인텐트 값이 있으면
+        if ((getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0) != 0.0) && (getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0) != 0.0)) {
+            mLatitude = getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0);
+            mLongitude = getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0);
+
+        } else {
+            //현재위치 값 구하기
+            getCurrentLocation();
+        }
+    }
+
+    private void reverseAddress() {
+        //좌표를 주소로 변환
+        final Geocoder geocoder = new Geocoder(this);
+        List<Address> list;
+        try {
+            list = geocoder.getFromLocation(mLatitude, mLongitude, 10);
+            tv_CurrentLocation.setText(list.get(1).getAddressLine(0).substring(5));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            e(TAG, "입출력 오류 - 서버에서 주소변환시 에러발생");
+        }
+    }
+
+    public void getData() {
+
+        mWeatherData = new WeatherData(this, mLatitude,mLongitude, this);
+        //선택 지수 값 가져오기
+        mWeatherData.getIndexData(mLatitude, mLongitude);
+        //보건 지수 가져오기
+        //mWeatherData.getHealthIndex();
+    }
+
     @Override
     public void onWeatherResponseAvailable() {
         tv_Temperature.setText(mWeatherData.getTemperature());
@@ -187,17 +204,14 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         adt_MainIndex.notifyDataSetChanged();
     }
 
-    private void reverseAddress() {
-        //좌표를 주소로 변환
-        final Geocoder geocoder = new Geocoder(this);
-        List<Address> list = null;
-        try {
-            list = geocoder.getFromLocation(mLatitude, mLongitude, 10);
-            tv_CurrentLocation.setText(list.get(1).getAddressLine(0).substring(5));
+    private void changeLocation() {
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            e(TAG, "입출력 오류 - 서버에서 주소변환시 에러발생");
+        if (checkPermission()) {
+            getCurrentLocation();
+            reverseAddress();
+            mRecyclerLivingData.clear();
+
+            getData();
         }
     }
 
@@ -223,10 +237,8 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
             mRecyclerLivingData.clear();
             reverseAddress();
-            //날씨 값 가져오기
-            mWeatherData.getWeatherAPIData(mLatitude, mLongitude);
-            //선택 지수 값 가져오기
-            mWeatherData.getIndexData(mLatitude, mLongitude);
+
+            getData();
         }
     }
 
@@ -249,7 +261,8 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
                 checkLocation();
                 reverseAddress();
 
-                onPermissionChecked();
+                getData();
+
             } else {
                 showAlert(LOCATION_REQUEST_MESSAGE);
             }
@@ -283,18 +296,6 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         return true;
     }
 
-    private void checkLocation() {
-        //들어온 인텐트 값이 있으면
-        if ((getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0) != 0.0) && (getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0) != 0.0)) {
-            mLatitude = getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0);
-            mLongitude = getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0);
-
-        } else {
-            //현재위치 값 구하기
-            getCurrentLocation();
-        }
-    }
-
     class LocationListener implements android.location.LocationListener {
         Location mLocation;
 
@@ -304,15 +305,15 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         @Override
         public void onLocationChanged(Location location) {
-            if(location !=null) {
+
+            if (location != null) {
                 mLocation.set(location);
 
                 mLatitude = mLocation.getLatitude();
                 mLongitude = mLocation.getLongitude();
-            }
-            else{
-                //null일 경우
-                
+            } else {
+
+                Toast.makeText(MainActivity.this,"일시적으로 내 위치를 확인할 수 없습니다",Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -332,15 +333,6 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         }
     }
 
-    @Override
-    public void onLocationChecked(LocationManager locationManager) {
-
-        Location locations = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
-        mLatitude = locations.getLatitude();
-        mLongitude = locations.getLongitude();
-    }
-
     private void getCurrentLocation() {
 
         //위치 매니저 초기화
@@ -355,28 +347,18 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         } catch (IllegalArgumentException ex) {
             Log.d(TAG, "network provider does not exist, " + ex.getMessage());
         }
-        if (mLocationListener.mLocation != null) {
-            onLocationChecked(mLocationManager);
-        }
+
+        Location locations = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        mLatitude = locations.getLatitude();
+        mLongitude = locations.getLongitude();
+
         //위치정보 미 수신할 때 자원해제-- 위치 정보를 업데이트 받고나서, 자원해제 하기 때문에 null값은 안들어올 것
         try {
             mLocationManager.removeUpdates(mLocationListener);
         } catch (Exception ex) {
             Log.i(TAG, "fail to remove location listners, ignore", ex);
         }
-    }
-
-    private void changeLocation() {
-
-        if (checkPermission()) {
-            getCurrentLocation();
-            reverseAddress();
-            mRecyclerLivingData.clear();
-
-            //날씨 값 가져오기
-            mWeatherData.getWeatherAPIData(mLatitude, mLongitude);
-            //선택 지수 값 가져오기
-            mWeatherData.getIndexData(mLatitude, mLongitude);
-        }
+        //우려사항-- requestLocationUpdates 값을 받아오기 전에 위경도 값이 null로 들어가고, 자원이 해제돼 버릴 수 있다.
     }
 }

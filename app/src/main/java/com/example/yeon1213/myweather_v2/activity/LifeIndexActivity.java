@@ -18,14 +18,12 @@ public class LifeIndexActivity extends AppCompatActivity {
 
     public static final String EXTRA_ACTIVITY_POSITION="com.example.yeon1213.myweather_v2.Activity.MainActivity.MenuItem_tag";
 
-    private RecyclerView mLivingRecyclerView;
-    private LifeIndexAdapter mLivingAdapter;
-    private RecyclerView.LayoutManager mLivingLayoutManager;
+    private RecyclerView rv_Living;
+    private LifeIndexAdapter adt_Living;
+    private RecyclerView.LayoutManager lay_Living;
 
     private List<Index> mLivingWeatherList;
     private int mItemId;
-    private SharedPreferences mIndexPref;
-    private SharedPreferences.Editor mEditor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,17 +38,15 @@ public class LifeIndexActivity extends AppCompatActivity {
     private void initView(){
 
         mLivingWeatherList =new ArrayList<>();
-        mIndexPref =getSharedPreferences("index_setting", Activity.MODE_PRIVATE);
-        mEditor = mIndexPref.edit();
 
-        mLivingRecyclerView =findViewById(R.id.recycler_view);
-        mLivingRecyclerView.setHasFixedSize(true);
+        rv_Living =findViewById(R.id.recycler_view);
+        rv_Living.setHasFixedSize(true);
 
-        mLivingLayoutManager =new LinearLayoutManager(getApplicationContext());
-        mLivingRecyclerView.setLayoutManager(mLivingLayoutManager);
+        lay_Living =new LinearLayoutManager(getApplicationContext());
+        rv_Living.setLayoutManager(lay_Living);
 
-        mLivingAdapter =new LifeIndexAdapter(this, mLivingWeatherList);
-        mLivingRecyclerView.setAdapter(mLivingAdapter);
+        adt_Living =new LifeIndexAdapter(this, mLivingWeatherList);
+        rv_Living.setAdapter(adt_Living);
     }
 
     private void checkActivity(){
@@ -99,7 +95,7 @@ public class LifeIndexActivity extends AppCompatActivity {
         index_data =new Index("빨래지수", "날씨에 따른 빨래하기 좋은 정도(서비스 기간: 연중)");
         mLivingWeatherList.add(index_data);
 
-        mLivingAdapter.notifyDataSetChanged();
+        adt_Living.notifyDataSetChanged();
     }
 
     private void HealthData(){
@@ -118,7 +114,7 @@ public class LifeIndexActivity extends AppCompatActivity {
         index_data =new Index("꽃가루농도위험지수", "기상조건(최고기온, 최저기온, 강수량, 평균풍속 등)에 따른 꽃가루 알레르기 발생 가능정도를 지수화(서비스 기간: 4월~5월(참나무, 소나무),9월~10월(잡초류))");
         mLivingWeatherList.add(index_data);
 
-        mLivingAdapter.notifyDataSetChanged();
+        adt_Living.notifyDataSetChanged();
     }
 
     @Override

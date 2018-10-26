@@ -50,7 +50,7 @@ public class LifeIndexAdapter extends RecyclerView.Adapter<LifeIndexAdapter.livi
 
         boolean index_check= mIndexPref.getBoolean(LD.getLivingName(),false);
 
-        living_viewHolder.cb_IndexCheckBox.setChecked(index_check);
+        living_viewHolder.cb_Index.setChecked(index_check);
     }
 
     @Override
@@ -61,21 +61,21 @@ public class LifeIndexAdapter extends RecyclerView.Adapter<LifeIndexAdapter.livi
     public class living_ViewHolder extends RecyclerView.ViewHolder implements CheckBox.OnCheckedChangeListener{
 
         public TextView tv_LivingName, tv_LivingExpla;
-        public CheckBox cb_IndexCheckBox;
+        public CheckBox cb_Index;
 
         public living_ViewHolder(View v){
             super(v);
 
             tv_LivingName =v.findViewById(R.id.livingName);
             tv_LivingExpla =v.findViewById(R.id.living_expla);
-            cb_IndexCheckBox =v.findViewById(R.id.index_checkbox);
+            cb_Index =v.findViewById(R.id.index_checkbox);
 
-            cb_IndexCheckBox.setOnCheckedChangeListener(this);
+            cb_Index.setOnCheckedChangeListener(this);
         }
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            //tag값을 받아와서 그 받아온 값들을 프리퍼런스에 저장,그 값의 id값을 부여, 보여주는 리스트 값을 다르게 설정해야 한다.
+
             int item_ID=(int) itemView.getTag();
 
             if(isChecked){

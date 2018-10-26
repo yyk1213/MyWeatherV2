@@ -18,22 +18,6 @@ public class Alarm {
     private LocationData locationData;
     private int alarmId;
 
-    public LocationData getLocationData() {
-        return locationData;
-    }
-
-    public void setLocationData(LocationData locationData) {
-        this.locationData = locationData;
-    }
-
-    public int getAlarm_id() {
-        return alarmId;
-    }
-
-    public void setAlarm_id(int alarm_id) {
-        this.alarmId = alarm_id;
-    }
-
     public boolean setAlarm(Context context, LocationData locationData){
 
             String mTime = locationData.getMTime();
