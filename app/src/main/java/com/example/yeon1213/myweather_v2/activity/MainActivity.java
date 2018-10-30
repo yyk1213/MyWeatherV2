@@ -1,9 +1,11 @@
 package com.example.yeon1213.myweather_v2.activity;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -32,6 +34,7 @@ import com.example.yeon1213.myweather_v2.R;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static android.util.Log.e;
 import static com.example.yeon1213.myweather_v2.activity.LifeIndexActivity.EXTRA_ACTIVITY_POSITION;
@@ -54,6 +57,8 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
     private WeatherData mWeatherData;
     private double mLatitude, mLongitude;
 
+    private SharedPreferences mSharedPreference;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,7 +72,6 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
             reverseAddress();
 
-            //mWeatherData.getAPIData(mLatitude, mLongitude);
             getData();
         }
     }
@@ -180,9 +184,9 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
     public void getData() {
 
-        mWeatherData = new WeatherData(this, mLatitude,mLongitude, this);
+        mWeatherData = new WeatherData(this, mLatitude, mLongitude, this);
         //선택 지수 값 가져오기
-        mWeatherData.getIndexData(mLatitude, mLongitude);
+        mWeatherData.callIndexAPI();
         //보건 지수 가져오기
         //mWeatherData.getHealthIndex();
     }
@@ -198,17 +202,62 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
     @Override
     public void onIndexResponseAvailable() {
-        mRecyclerLivingData = mWeatherData.getLivingData();
+        checkPreference();
+    }
+
+    private void checkPreference() {
+        mSharedPreference = this.getSharedPreferences("index_setting", Activity.MODE_PRIVATE);
+
+        Map<String, ?> indexPref = mSharedPreference.getAll();
+
+        //똑같은게 들어가면 안된다.
+        for (Map.Entry<String, ?> entry : indexPref.entrySet()) {
+
+            if ((Boolean) entry.getValue() == true) {
+
+                switch (entry.getKey()) {
+                    case "자외선지수":
+                        mRecyclerLivingData.add("자외선지수: " + mWeatherData.getIndexData().get("자외선지수"));
+
+                        break;
+                    case "불쾌지수":
+                        mRecyclerLivingData.add("불쾌지수: " + mWeatherData.getIndexData().get("불쾌지수"));
+
+                        break;
+                    case "열지수":
+                        mRecyclerLivingData.add("열지수: " + mWeatherData.getIndexData().get("열지수"));
+
+                        break;
+                    case "체감온도":
+                        mRecyclerLivingData.add("체감온도: " + mWeatherData.getIndexData().get("체감온도"));
+
+                        break;
+                    case "세차지수":
+                        mRecyclerLivingData.add("세차지수: " + mWeatherData.getIndexData().get("세차지수"));
+
+                        break;
+                    case "빨래지수":
+                        mRecyclerLivingData.add("빨래지수: " + mWeatherData.getIndexData().get("빨래지수"));
+
+                        break;
+                }
+            }
+        }
+
         adt_MainIndex = new MainIndexAdapter(getApplicationContext(), mRecyclerLivingData);
         rv_MainIndex.setAdapter(adt_MainIndex);
         adt_MainIndex.notifyDataSetChanged();
+
     }
 
     private void changeLocation() {
 
         if (checkPermission()) {
+
             getCurrentLocation();
+
             reverseAddress();
+
             mRecyclerLivingData.clear();
 
             getData();
@@ -220,7 +269,8 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         if (resultCode == RESULT_OK) {
             mRecyclerLivingData.clear();
-            mWeatherData.getIndexData(mLatitude, mLongitude);
+            checkPreference();
+            //mWeatherData.getIndexData(mLatitude, mLongitude);
         }
     }
 
@@ -236,6 +286,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
             mLongitude = getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0);
 
             mRecyclerLivingData.clear();
+            checkPreference();
             reverseAddress();
 
             getData();
@@ -313,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
                 mLongitude = mLocation.getLongitude();
             } else {
 
-                Toast.makeText(MainActivity.this,"일시적으로 내 위치를 확인할 수 없습니다",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "일시적으로 내 위치를 확인할 수 없습니다", Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -331,6 +382,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         public void onProviderDisabled(String provider) {
 
         }
+
     }
 
     private void getCurrentLocation() {
