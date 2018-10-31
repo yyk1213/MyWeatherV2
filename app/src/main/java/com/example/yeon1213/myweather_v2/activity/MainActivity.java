@@ -68,11 +68,12 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         if (checkPermission()) {
 
-            checkLocation();
+            if (checkLocation()) {
 
-            reverseAddress();
+                reverseAddress();
 
-            getData();
+                getData();
+            }
         }
     }
 
@@ -156,18 +157,6 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         alertDialogBuilder.show();
     }
 
-    private void checkLocation() {
-        //들어온 인텐트 값이 있으면
-        if ((getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0) != 0.0) && (getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0) != 0.0)) {
-            mLatitude = getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0);
-            mLongitude = getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0);
-
-        } else {
-            //현재위치 값 구하기
-            getCurrentLocation();
-        }
-    }
-
     private void reverseAddress() {
         //좌표를 주소로 변환
         final Geocoder geocoder = new Geocoder(this);
@@ -193,6 +182,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
     @Override
     public void onWeatherResponseAvailable() {
+
         tv_Temperature.setText(mWeatherData.getTemperature());
         tv_FineDust.setText(mWeatherData.getDust() + " " + mWeatherData.getDust_comment());
         tv_Precipitation.setText(" " + mWeatherData.getPrecipitation());
@@ -202,10 +192,14 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
     @Override
     public void onIndexResponseAvailable() {
+
         checkPreference();
     }
 
     private void checkPreference() {
+
+        mRecyclerLivingData.clear();
+
         mSharedPreference = this.getSharedPreferences("index_setting", Activity.MODE_PRIVATE);
 
         Map<String, ?> indexPref = mSharedPreference.getAll();
@@ -214,32 +208,27 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         for (Map.Entry<String, ?> entry : indexPref.entrySet()) {
 
             if ((Boolean) entry.getValue() == true) {
-
-                switch (entry.getKey()) {
-                    case "자외선지수":
-                        mRecyclerLivingData.add("자외선지수: " + mWeatherData.getIndexData().get("자외선지수"));
-
-                        break;
-                    case "불쾌지수":
-                        mRecyclerLivingData.add("불쾌지수: " + mWeatherData.getIndexData().get("불쾌지수"));
-
-                        break;
-                    case "열지수":
-                        mRecyclerLivingData.add("열지수: " + mWeatherData.getIndexData().get("열지수"));
-
-                        break;
-                    case "체감온도":
-                        mRecyclerLivingData.add("체감온도: " + mWeatherData.getIndexData().get("체감온도"));
-
-                        break;
-                    case "세차지수":
-                        mRecyclerLivingData.add("세차지수: " + mWeatherData.getIndexData().get("세차지수"));
-
-                        break;
-                    case "빨래지수":
-                        mRecyclerLivingData.add("빨래지수: " + mWeatherData.getIndexData().get("빨래지수"));
-
-                        break;
+                if (mWeatherData.getIndexData().get(entry.getKey()) != null) {
+                    switch (entry.getKey()) {
+                        case "자외선지수":
+                            mRecyclerLivingData.add("자외선지수: " + mWeatherData.getIndexData().get("자외선지수"));
+                            break;
+                        case "불쾌지수":
+                            mRecyclerLivingData.add("불쾌지수: " + mWeatherData.getIndexData().get("불쾌지수"));
+                            break;
+                        case "열지수":
+                            mRecyclerLivingData.add("열지수: " + mWeatherData.getIndexData().get("열지수"));
+                            break;
+                        case "체감온도":
+                            mRecyclerLivingData.add("체감온도: " + mWeatherData.getIndexData().get("체감온도"));
+                            break;
+                        case "세차지수":
+                            mRecyclerLivingData.add("세차지수: " + mWeatherData.getIndexData().get("세차지수"));
+                            break;
+                        case "빨래지수":
+                            mRecyclerLivingData.add("빨래지수: " + mWeatherData.getIndexData().get("빨래지수"));
+                            break;
+                    }
                 }
             }
         }
@@ -254,13 +243,10 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         if (checkPermission()) {
 
-            getCurrentLocation();
-
-            reverseAddress();
-
-            mRecyclerLivingData.clear();
-
-            getData();
+            if (checkLocation()) {
+                reverseAddress();
+                getData();
+            }
         }
     }
 
@@ -268,7 +254,8 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (resultCode == RESULT_OK) {
-            mRecyclerLivingData.clear();
+
+            mWeatherData.getIndexData();
             checkPreference();
             //mWeatherData.getIndexData(mLatitude, mLongitude);
         }
@@ -281,14 +268,11 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         setIntent(intent);
 
         //들어온 인텐트 값이 있으면
-        if ((getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0) != 0.0) && (getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0) != 0.0)) {
+        if ((getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0) != mLatitude) || (getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0) != mLongitude)) {
             mLatitude = getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0);
             mLongitude = getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0);
 
-            mRecyclerLivingData.clear();
-            checkPreference();
             reverseAddress();
-
             getData();
         }
     }
@@ -309,11 +293,11 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         if (requestCode == LOCATION_PERMISSIONS_REQUEST) {
             if (grantResults.length == 2 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                checkLocation();
-                reverseAddress();
+                if (checkLocation()) {
+                    reverseAddress();
 
-                getData();
-
+                    getData();
+                }
             } else {
                 showAlert(LOCATION_REQUEST_MESSAGE);
             }
@@ -363,7 +347,6 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
                 mLatitude = mLocation.getLatitude();
                 mLongitude = mLocation.getLongitude();
             } else {
-
                 Toast.makeText(MainActivity.this, "일시적으로 내 위치를 확인할 수 없습니다", Toast.LENGTH_SHORT).show();
             }
         }
@@ -385,7 +368,8 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
     }
 
-    private void getCurrentLocation() {
+    private boolean checkLocation() {
+        //위치가 달라지면 true, 안 달라지면 false
 
         //위치 매니저 초기화
         LocationManager mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -402,14 +386,21 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         Location locations = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
-        mLatitude = locations.getLatitude();
-        mLongitude = locations.getLongitude();
-
         //위치정보 미 수신할 때 자원해제-- 위치 정보를 업데이트 받고나서, 자원해제 하기 때문에 null값은 안들어올 것
         try {
             mLocationManager.removeUpdates(mLocationListener);
         } catch (Exception ex) {
             Log.i(TAG, "fail to remove location listners, ignore", ex);
+        }
+
+        if ((mLatitude == locations.getLatitude()) && (mLongitude == locations.getLongitude())) {
+            return false;
+        } else {
+
+            mLatitude = locations.getLatitude();
+            mLongitude = locations.getLongitude();
+
+            return true;
         }
         //우려사항-- requestLocationUpdates 값을 받아오기 전에 위경도 값이 null로 들어가고, 자원이 해제돼 버릴 수 있다.
     }

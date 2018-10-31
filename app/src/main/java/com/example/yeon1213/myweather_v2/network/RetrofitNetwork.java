@@ -1,18 +1,24 @@
 package com.example.yeon1213.myweather_v2.network;
 
+
+import java.io.IOException;
+
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitNetwork {
 
-    private static RetrofitNetwork sRetrofitNetwork;
-    public static String TAG="Retrofit Network";
+    public static String TAG = "Retrofit Network";
 
-    public static RetrofitNetwork get(){
-        if(sRetrofitNetwork ==null){
-            sRetrofitNetwork =new RetrofitNetwork();
+    private static RetrofitNetwork sRetrofitNetwork;
+
+    public static RetrofitNetwork get() {
+        if (sRetrofitNetwork == null) {
+            sRetrofitNetwork = new RetrofitNetwork();
         }
         return sRetrofitNetwork;
     }
@@ -20,17 +26,26 @@ public class RetrofitNetwork {
     public RetrofitNetwork() {
     }
 
+    OkHttpClient client = new OkHttpClient.Builder()
+            .addInterceptor(new Interceptor() {
+        @Override
+        public Response intercept(Chain chain) throws IOException {
 
-    HttpLoggingInterceptor interceptor=new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY);
-    OkHttpClient client=new OkHttpClient.Builder().addInterceptor(interceptor).build();
+            Request request = chain.request();
 
-    Retrofit retrofit=new Retrofit.Builder().client(client).baseUrl(RetrofitService.WEATHER_BASEURL).addConverterFactory(GsonConverterFactory.create()).build();
-    RetrofitService retrofitService=retrofit.create(RetrofitService.class);
+            okhttp3.Response response=chain.proceed(request);
 
+            if(response.body()==null){
+                throw new IOException("Response Body is null");
+            }
+            return chain.proceed(request);
+        }
+    }).build();
+
+    Retrofit retrofit = new Retrofit.Builder().baseUrl(RetrofitService.WEATHER_BASEURL).client(client).addConverterFactory(GsonConverterFactory.create()).build();
+    RetrofitService retrofitService = retrofit.create(RetrofitService.class);
 
     public RetrofitService getRetrofitService() {
         return retrofitService;
     }
-    
-    //인터셉트 해서 body 값 까지가 null일 경우 어떻게 할지 알려주기
 }
