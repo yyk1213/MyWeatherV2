@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class AddressAutoCompleteAdapter extends ArrayAdapter implements Filterable{
+public class AddressAutoCompleteAdapter extends ArrayAdapter implements Filterable {
     public static final String TAG = "AddressAutoCompAdapter";
 
     private GeoDataClient mGeoDataClient;
@@ -36,13 +36,13 @@ public class AddressAutoCompleteAdapter extends ArrayAdapter implements Filterab
     private ArrayList<AutocompletePrediction> mPredictionItem;
 
     public AddressAutoCompleteAdapter(@NonNull Context context, GeoDataClient mGeoDataClient, LatLngBounds mBounds, AutocompleteFilter mPlaceFilter) {
-        super(context,android.R.layout.simple_expandable_list_item_2,android.R.id.text1);
+        super(context, android.R.layout.simple_expandable_list_item_2, android.R.id.text1);
         this.mGeoDataClient = mGeoDataClient;
         this.mPlaceFilter = mPlaceFilter;
         this.mBounds = mBounds;
     }
 
-    public AutocompletePrediction getPrediction_item(int position) {
+    public AutocompletePrediction getPredictionItem(int position) {
         return mPredictionItem.get(position);
     }
 
@@ -69,18 +69,18 @@ public class AddressAutoCompleteAdapter extends ArrayAdapter implements Filterab
         return new Filter() {
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
-                FilterResults results=new FilterResults();//결과 값 담기
-
-                //ArrayList<AutocompletePrediction> filterData=new ArrayList<>();
-                ArrayList<String> filterData_String=new ArrayList<>();
-
-                if(constraint !=null){
-                    filterData_String=getAutocomplete(constraint);
+                FilterResults results = new FilterResults();//필터 적용했을 때의 결과 값
+                //필터 값 스트링을 받을 배열 선언
+                ArrayList<String> filterData_String = new ArrayList<>();
+                //자동완선 된 값을 필터 데이터 스트링에 담는다.
+                if (constraint != null) {
+                    filterData_String = getAutocomplete(constraint);
                 }
 
-                results.values=filterData_String;
-                if(filterData_String!=null){
-                    results.count=filterData_String.size();
+                results.values = filterData_String;
+
+                if (filterData_String != null) {
+                    results.count = filterData_String.size();
                 }
                 return results;
             }
@@ -88,10 +88,10 @@ public class AddressAutoCompleteAdapter extends ArrayAdapter implements Filterab
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
 
-                if(results!=null && results.count>0){
-                    mResultList=(ArrayList<String>)results.values;
-                            notifyDataSetChanged();
-                }else{
+                if (results != null && results.count > 0) {
+                    mResultList = (ArrayList<String>) results.values;
+                    notifyDataSetChanged();
+                } else {
                     notifyDataSetInvalidated();
                 }
             }
@@ -109,18 +109,16 @@ public class AddressAutoCompleteAdapter extends ArrayAdapter implements Filterab
         };
     }
 
-    //자동완성
+    //자동완성 API 호출하는 부분
     private ArrayList<String> getAutocomplete(CharSequence constraint) {
         Log.i(TAG, "Starting autocomplete query for: " + constraint);
 
-        // Submit the query to the autocomplete API and retrieve a PendingResult that will
-        // contain the results when the query completes.
+        //API 쿼리 날리고, 쿼리 완료됐을 때 결과 값 갖고 있는 PendingResult 가져오기
         Task<AutocompletePredictionBufferResponse> results =
                 mGeoDataClient.getAutocompletePredictions(constraint.toString(), mBounds,
                         mPlaceFilter);
 
-        // This method should have been called off the main UI thread. Block and wait for at most
-        // 60s for a result from the API.
+        //api 결과 받아오기 위해 최대 60초 기다린다.
         try {
             Tasks.await(results, 60, TimeUnit.SECONDS);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
@@ -128,21 +126,23 @@ public class AddressAutoCompleteAdapter extends ArrayAdapter implements Filterab
         }
 
         try {
+            //result 결과를 가져오고
             AutocompletePredictionBufferResponse autocompletePredictions = results.getResult();
-            ArrayList<AutocompletePrediction> autoCompleteList=DataBufferUtils.freezeAndClose(autocompletePredictions);
+            //데이터를 특정형식으로 고정시켜서 자동완성 리스트에 담는다.
+            ArrayList<AutocompletePrediction> autoCompleteList = DataBufferUtils.freezeAndClose(autocompletePredictions);
 
-            ArrayList<String> auto_result=new ArrayList<>();
-            mPredictionItem =new ArrayList<>();
+            ArrayList<String> auto_result = new ArrayList<>();
+            mPredictionItem = new ArrayList<>();
 
-            for(AutocompletePrediction prediction:autoCompleteList){
-                    auto_result.add(prediction.getFullText(null).toString().substring(5));
-                    mPredictionItem.add(prediction);
+            for (AutocompletePrediction prediction : autoCompleteList) {
+                auto_result.add(prediction.getFullText(null).toString().substring(5));
+                mPredictionItem.add(prediction);
             }
 
             return auto_result;
 
         } catch (RuntimeExecutionException e) {
-            // If the query did not complete successfully return null
+
             Toast.makeText(getContext(), "Error contacting API: " + e.toString(),
                     Toast.LENGTH_SHORT).show();
             Log.e(TAG, "Error getting autocomplete prediction API call", e);

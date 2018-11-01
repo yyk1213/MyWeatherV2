@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
@@ -36,7 +37,7 @@ import com.google.android.gms.tasks.Task;
 
 import java.util.Calendar;
 
-public class LifeRadiusSettingActivity extends AppCompatActivity implements View.OnClickListener, ToggleButton.OnCheckedChangeListener {
+public class LifeRadiusSettingActivity extends AppCompatActivity implements View.OnClickListener, ToggleButton.OnCheckedChangeListener, TextView.OnEditorActionListener{
 
     private static final LatLngBounds BOUNDS_GRATER_KOREA = new LatLngBounds(new LatLng(35.9078, 127.7669), new LatLng(35.9078, 127.7669));
     public static final String EXTRA_DATA_ID = "com.example.yeon1213.myweather_v2.Activity.location_data_id";
@@ -118,6 +119,8 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
         mSearchPlace.setAdapter(mAdapter);
 
         mSearchPlace.setOnItemClickListener(mAutocompleteClickListener);
+        mSearchPlace.setOnEditorActionListener(this);
+
         btn_Time.setOnClickListener(this);
         btn_Clear.setOnClickListener(this);
         btn_Save.setOnClickListener(this);
@@ -267,6 +270,18 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
 
     }
 
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        if(v.getId()==R.id.place_autocomplete_powered_by_google){
+            if(event.getAction()==KeyEvent.ACTION_DOWN){
+                Log.i("키보드","눌림");
+            }
+
+            return true;
+        }
+        return false;
+    }
+
     //선택된 요일 bit계산
     private void setDayOfWeek(int day, boolean checked) {
         if (checked)
@@ -322,14 +337,14 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                    final AutocompletePrediction item = mAdapter.getPrediction_item(position);
+                    //어댑터에서 클릭된 아이템을 가져와서
+                    final AutocompletePrediction item = mAdapter.getPredictionItem(position);
+                    //그것의 아이디 값을 저장하고
                     final String placeId = item.getPlaceId();
-                    //final CharSequence primaryText=item.getPrimaryText(null);
-
+                    //GeoDataClient에서 그 아이디 값으로 결과 값을 가져와서
                     Task<PlaceBufferResponse> placeResult = mGeoDataClient.getPlaceById(placeId);
+                    //그 값을 컴플리트 리스너에 넣는다.
                     placeResult.addOnCompleteListener(mUpdatePlaceDetailsCallback);
-
-                    Log.i("선택", "Called getPlaceById to get Place details for " + placeId);
                 }
             };
 
@@ -340,9 +355,9 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
             try {
                 PlaceBufferResponse places = task.getResult();
 
-                // Get the Place object from the buffer.
+                //task 결과 값의 첫번째를 가져온다.
                 final Place place = places.get(0);
-
+                //그것의 위경도 값을 저장한다.
                 LatLng latLng = place.getLatLng();
 
                 mLocationData.setMLatitude(latLng.latitude);
@@ -358,17 +373,6 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
                 mLocationData.setMLocation_name(mDataLocationName);
                 mLocationData.setMLocation_address(mDataLocationAddress);
 
-                // Display the third party attributions if set.
-                final CharSequence thirdPartyAttribution = places.getAttributions();
-                if (thirdPartyAttribution == null) {
-                    tv_PlaceDetailsAddress.setVisibility(View.GONE);
-                } else {
-                    tv_PlaceDetailsAddress.setVisibility(View.VISIBLE);
-                    tv_PlaceDetailsAddress.setText(
-                            Html.fromHtml(thirdPartyAttribution.toString()));
-                }
-
-                Log.i("TAG", "Place details received: " + place.getName());
                 places.release();
 
             } catch (RuntimeRemoteException e) {
@@ -380,7 +384,7 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
     };
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence name) {
-
+        //html 형식을 볼 수 있게 바꾸기
         return Html.fromHtml(res.getString(R.string.place_details, name));
     }
 }

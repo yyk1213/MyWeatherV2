@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
     private List<String> mRecyclerLivingData;
     private WeatherData mWeatherData;
     private double mLatitude, mLongitude;
+    private String mBeforeAddressCode;
 
     private SharedPreferences mSharedPreference;
 
@@ -68,9 +69,9 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         if (checkPermission()) {
 
-            if (checkLocation()) {
+            getLocation();
 
-                reverseAddress();
+            if (changeAddress()) {
 
                 getData();
             }
@@ -157,18 +158,38 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         alertDialogBuilder.show();
     }
 
-    private void reverseAddress() {
+    private boolean changeAddress() {
         //좌표를 주소로 변환
         final Geocoder geocoder = new Geocoder(this);
-        List<Address> list;
+
         try {
-            list = geocoder.getFromLocation(mLatitude, mLongitude, 10);
-            tv_CurrentLocation.setText(list.get(1).getAddressLine(0).substring(5));
+
+            List<Address> list = geocoder.getFromLocation(mLatitude, mLongitude, 10);
+            //앱이 처음 실행되는 경우
+            if (mBeforeAddressCode == null) {
+                mBeforeAddressCode = list.get(1).getPostalCode();
+                tv_CurrentLocation.setText(list.get(1).getAddressLine(0).substring(5));
+                return true;
+            } else {
+                tv_CurrentLocation.setText(list.get(1).getAddressLine(0).substring(5));
+
+                if (mBeforeAddressCode.equals(list.get(1).getPostalCode())) {
+
+                    return false;
+                } else {
+
+                    mBeforeAddressCode = list.get(1).getPostalCode();
+
+                    return true;
+                }
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
             e(TAG, "입출력 오류 - 서버에서 주소변환시 에러발생");
         }
+
+        return false;
     }
 
     public void getData() {
@@ -242,9 +263,9 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
     private void changeLocation() {
 
         if (checkPermission()) {
+            getLocation();
 
-            if (checkLocation()) {
-                reverseAddress();
+            if (changeAddress()) {
                 getData();
             }
         }
@@ -272,8 +293,9 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
             mLatitude = getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0);
             mLongitude = getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0);
 
-            reverseAddress();
-            getData();
+            if (changeAddress()) {
+                getData();
+            }
         }
     }
 
@@ -293,9 +315,8 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         if (requestCode == LOCATION_PERMISSIONS_REQUEST) {
             if (grantResults.length == 2 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                if (checkLocation()) {
-                    reverseAddress();
-
+                getLocation();
+                if (changeAddress()) {
                     getData();
                 }
             } else {
@@ -368,7 +389,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
     }
 
-    private boolean checkLocation() {
+    private void getLocation() {
         //위치가 달라지면 true, 안 달라지면 false
 
         //위치 매니저 초기화
@@ -393,15 +414,9 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
             Log.i(TAG, "fail to remove location listners, ignore", ex);
         }
 
-        if ((mLatitude == locations.getLatitude()) && (mLongitude == locations.getLongitude())) {
-            return false;
-        } else {
+        mLatitude = locations.getLatitude();
+        mLongitude = locations.getLongitude();
 
-            mLatitude = locations.getLatitude();
-            mLongitude = locations.getLongitude();
-
-            return true;
-        }
         //우려사항-- requestLocationUpdates 값을 받아오기 전에 위경도 값이 null로 들어가고, 자원이 해제돼 버릴 수 있다.
         //위 경도 값은 소수점으로 돼 있기 때문에 완전히 같기가 힘들다 -- 다른 경우 생각하기
     }
