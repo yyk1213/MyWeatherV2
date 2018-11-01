@@ -56,10 +56,6 @@ public class WeatherData {
         getWeatherAPIData(latitude, longitude);//이 함수를 여기서 부를 경우 생길 수 있는 문제--리스너로 해결
     }
 
-    public Weather getWeatherData() {
-        return weatherData;
-    }
-
     public String getTemperature() {
         return temperature;
     }
@@ -88,20 +84,14 @@ public class WeatherData {
         return context;
     }
 
-    public void callIndexAPI() {
+    public void getIndexAPIData() {
 
-        if(IndexData!=null){
+        if (IndexData != null) {
             IndexData.clear();
         }
 
         IndexData = new HashMap<>();
-
         getHeatIndex();
-        getWctIndex();
-        getUvIndex();
-        getThIndex();
-        getCarWashIndex();
-        getLaundryIndex();
     }
 
     public HashMap<String, String> getIndexData() {
@@ -182,8 +172,9 @@ public class WeatherData {
                         heatIndex = response.body().getWeather().getWIndex().getHeatIndex().get(0).getCurrent().getIndex();
 
                         IndexData.put("열지수", heatIndex);
+                        getWctIndex();
 
-                        listener.onIndexResponseAvailable();
+                        //listener.onIndexResponseAvailable();
 
                     } else {
                         Log.e(TAG, WEATHER_DATA_NULL_ERROR);
@@ -207,9 +198,11 @@ public class WeatherData {
                 if (response.isSuccessful()) {
                     if (response.body() != null) {
                         wctIndex = response.body().getWeather().getWIndex().getWctIndex().get(0).getCurrent().getIndex();
-                        IndexData.put("체감온도", heatIndex);
-                        listener.onIndexResponseAvailable();
-                    }else{
+                        IndexData.put("체감온도", wctIndex);
+
+                        getUvIndex();
+                        //listener.onIndexResponseAvailable();
+                    } else {
                         Log.e(TAG, WEATHER_DATA_NULL_ERROR);
                     }
                 }
@@ -233,8 +226,10 @@ public class WeatherData {
                         thIndex = response.body().getWeather().getWIndex().getThIndex().get(0).getCurrent().getIndex();
                         IndexData.put("불쾌지수", thIndex);
 
-                        listener.onIndexResponseAvailable();
-                    }else{
+                        getCarWashIndex();
+
+                        //listener.onIndexResponseAvailable();
+                    } else {
                         Log.e(TAG, WEATHER_DATA_NULL_ERROR);
                     }
                 }
@@ -259,8 +254,9 @@ public class WeatherData {
                         carWash = response.body().getWeather().getWIndex().getCarWash().get(0).getComment();
                         IndexData.put("세차지수", carWash);
 
-                        listener.onIndexResponseAvailable();
-                    }else{
+                        getLaundryIndex();
+                        //listener.onIndexResponseAvailable();
+                    } else {
                         Log.e(TAG, WEATHER_DATA_NULL_ERROR);
                     }
                 }
@@ -283,9 +279,10 @@ public class WeatherData {
                     if (response.body() != null) {
                         uvIndex = response.body().getWeather().getWIndex().getUvIndex().get(0).getDay01().getComment();
                         IndexData.put("자외선지수", uvIndex);
+                        getThIndex();
 
-                        listener.onIndexResponseAvailable();
-                    }else{
+                        //listener.onIndexResponseAvailable();
+                    } else {
                         Log.e(TAG, WEATHER_DATA_NULL_ERROR);
                     }
                 }
@@ -311,7 +308,7 @@ public class WeatherData {
                         IndexData.put("빨래지수", laundry);
 
                         listener.onIndexResponseAvailable();
-                    }else{
+                    } else {
                         Log.e(TAG, WEATHER_DATA_NULL_ERROR);
                     }
                 }

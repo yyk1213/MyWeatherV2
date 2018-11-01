@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         mWeatherData = new WeatherData(this, mLatitude, mLongitude, this);
         //선택 지수 값 가져오기
-        mWeatherData.callIndexAPI();
+        mWeatherData.getIndexAPIData();
         //보건 지수 가져오기
         //mWeatherData.getHealthIndex();
     }
@@ -403,5 +403,6 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
             return true;
         }
         //우려사항-- requestLocationUpdates 값을 받아오기 전에 위경도 값이 null로 들어가고, 자원이 해제돼 버릴 수 있다.
+        //위 경도 값은 소수점으로 돼 있기 때문에 완전히 같기가 힘들다 -- 다른 경우 생각하기
     }
 }
