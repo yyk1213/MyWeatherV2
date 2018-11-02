@@ -12,9 +12,10 @@ import android.support.v4.app.NotificationCompat;
 import com.example.yeon1213.myweather_v2.activity.MainActivity;
 import com.example.yeon1213.myweather_v2.database.LocationData;
 import com.example.yeon1213.myweather_v2.database.LocationDatabase;
-import com.example.yeon1213.myweather_v2.interfaces.DataResponseListener;
-import com.example.yeon1213.myweather_v2.network.WeatherData;
+
 import com.example.yeon1213.myweather_v2.R;
+import com.example.yeon1213.weatherdatalibrary.data.interfaces.DataResponseListener;
+import com.example.yeon1213.weatherdatalibrary.data.network.WeatherData;
 
 import static com.example.yeon1213.myweather_v2.activity.MainActivity.EXTRA_LATITUDE;
 import static com.example.yeon1213.myweather_v2.activity.MainActivity.EXTRA_LONGITUDE;

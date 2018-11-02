@@ -4,14 +4,16 @@ import android.app.TimePickerDialog;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
+import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -34,10 +36,11 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.RuntimeRemoteException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 
 import java.util.Calendar;
 
-public class LifeRadiusSettingActivity extends AppCompatActivity implements View.OnClickListener, ToggleButton.OnCheckedChangeListener, TextView.OnEditorActionListener{
+public class LifeRadiusSettingActivity extends AppCompatActivity implements View.OnClickListener, ToggleButton.OnCheckedChangeListener, TextWatcher {
 
     private static final LatLngBounds BOUNDS_GRATER_KOREA = new LatLngBounds(new LatLng(35.9078, 127.7669), new LatLng(35.9078, 127.7669));
     public static final String EXTRA_DATA_ID = "com.example.yeon1213.myweather_v2.Activity.location_data_id";
@@ -64,7 +67,8 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
 
     private int mItemId;
     private int mPosition;
-
+    private Chronometer mChronometer;
+    private boolean mTextCheck = true;
     //Day of week buttons
     ToggleButton tb_Sun;
     ToggleButton tb_Mon;
@@ -86,7 +90,7 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
         checkValue();
     }
 
-    private void initView(){
+    private void initView() {
 
         mSearchPlace = findViewById(R.id.place_autocomplete_powered_by_google);
         tv_PlaceDetailsText = findViewById(R.id.place_name);
@@ -115,11 +119,11 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
         tb_Sat.setOnCheckedChangeListener(this);
         //places api 클라이언트
         mGeoDataClient = Places.getGeoDataClient(this, null);
-        mAdapter = new AddressAutoCompleteAdapter(this, mGeoDataClient, BOUNDS_GRATER_KOREA, null);//어댑터 안에 필터 있음
-        mSearchPlace.setAdapter(mAdapter);
+//        mAdapter = new AddressAutoCompleteAdapter(this, mGeoDataClient, BOUNDS_GRATER_KOREA, null);//어댑터 안에 필터 있음
+//        mSearchPlace.setAdapter(mAdapter);
 
         mSearchPlace.setOnItemClickListener(mAutocompleteClickListener);
-        mSearchPlace.setOnEditorActionListener(this);
+        mSearchPlace.addTextChangedListener(this);
 
         btn_Time.setOnClickListener(this);
         btn_Clear.setOnClickListener(this);
@@ -196,7 +200,7 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
         }
     }
 
-    private void setTime(){
+    private void setTime() {
 
         Calendar now = Calendar.getInstance();
         int hour = now.get(Calendar.HOUR_OF_DAY);
@@ -220,7 +224,7 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
         timePickerDialog.show();
     }
 
-    private void removeData(){
+    private void removeData() {
 
         LocationData removeData = mDatabase.getLocationDAO().getLocation().get(mPosition);
         mDatabase.getLocationDAO().delete(removeData);//db항목 삭제
@@ -229,12 +233,12 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
 
     }
 
-    private void setAlarmID(){
+    private void setAlarmID() {
 
         //locationData를 다시 가져오기<<알람 id를 가져오기 위해
-        mDatabase =LocationDatabase.getDataBase(this);
-        int max= mDatabase.getLocationDAO().getLocation().size()-1;
-        int max_id= mDatabase.getLocationDAO().getLocation().get(max).getMId();
+        mDatabase = LocationDatabase.getDataBase(this);
+        int max = mDatabase.getLocationDAO().getLocation().size() - 1;
+        int max_id = mDatabase.getLocationDAO().getLocation().get(max).getMId();
 
         mLocationData.setMId(max_id);
     }
@@ -268,18 +272,6 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
         Log.d("요일 선택", "" + mDayOfWeek);
         mLocationData.setMDayOfWeek(mDayOfWeek);
 
-    }
-
-    @Override
-    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        if(v.getId()==R.id.place_autocomplete_powered_by_google){
-            if(event.getAction()==KeyEvent.ACTION_DOWN){
-                Log.i("키보드","눌림");
-            }
-
-            return true;
-        }
-        return false;
     }
 
     //선택된 요일 bit계산
@@ -336,7 +328,6 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
             new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
                     //어댑터에서 클릭된 아이템을 가져와서
                     final AutocompletePrediction item = mAdapter.getPredictionItem(position);
                     //그것의 아이디 값을 저장하고
@@ -382,6 +373,51 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
             }
         }
     };
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+        mTextCheck = true;
+        if (mChronometer == null) {
+
+            mChronometer = new Chronometer(this);
+            mChronometer.setBase(System.currentTimeMillis());
+            mChronometer.start();
+        } else {
+            //입력이 됐다는 뜻이니까 시간측정을 멈춘다.
+            if (mTextCheck) {
+                mChronometer.stop();
+            } else {
+                //마지막 입력일 경우 시간 비교--조건문
+                if (checkTime()) {
+                    mAdapter = new AddressAutoCompleteAdapter(this, mGeoDataClient, BOUNDS_GRATER_KOREA, null);//어댑터 안에 필터 있음
+                    mSearchPlace.setAdapter(mAdapter);
+                }
+            }
+        }
+
+        mTextCheck = false;
+    }
+
+    private boolean checkTime() {
+
+//        try{
+//            Tasks.await()
+//        }
+        if (mChronometer.getBase() < System.currentTimeMillis() + 1000) {
+            return true;
+        }
+        return false;
+    }
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence name) {
         //html 형식을 볼 수 있게 바꾸기

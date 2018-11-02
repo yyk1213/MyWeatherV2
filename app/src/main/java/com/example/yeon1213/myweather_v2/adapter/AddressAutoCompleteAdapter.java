@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Chronometer;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.Toast;
@@ -63,6 +64,7 @@ public class AddressAutoCompleteAdapter extends ArrayAdapter implements Filterab
         return super.getView(position, view, parent);
     }
 
+    //글씨 입력하면 필터가 자동으로 호출
     @NonNull
     @Override
     public Filter getFilter() {

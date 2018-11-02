@@ -27,9 +27,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.yeon1213.myweather_v2.adapter.MainIndexAdapter;
-import com.example.yeon1213.myweather_v2.interfaces.DataResponseListener;
-import com.example.yeon1213.myweather_v2.network.WeatherData;
 import com.example.yeon1213.myweather_v2.R;
+import com.example.yeon1213.weatherdatalibrary.data.interfaces.DataResponseListener;
+import com.example.yeon1213.weatherdatalibrary.data.network.WeatherData;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -167,13 +167,13 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
             List<Address> list = geocoder.getFromLocation(mLatitude, mLongitude, 10);
             //앱이 처음 실행되는 경우
             if (mBeforeAddressCode == null) {
-                mBeforeAddressCode = list.get(1).getPostalCode();
-                tv_CurrentLocation.setText(list.get(1).getAddressLine(0).substring(5));
+                mBeforeAddressCode = list.get(0).getPostalCode();
+                tv_CurrentLocation.setText(list.get(0).getAddressLine(0).substring(5));
                 return true;
             } else {
-                tv_CurrentLocation.setText(list.get(1).getAddressLine(0).substring(5));
+                tv_CurrentLocation.setText(list.get(0).getAddressLine(0).substring(5));
 
-                if (mBeforeAddressCode.equals(list.get(1).getPostalCode())) {
+                if (mBeforeAddressCode.substring(0,2).equals(list.get(1).getPostalCode().substring(0,2))) {
 
                     return false;
                 } else {

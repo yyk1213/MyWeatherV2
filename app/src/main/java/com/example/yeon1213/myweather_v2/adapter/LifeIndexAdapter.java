@@ -11,8 +11,8 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
-import com.example.yeon1213.myweather_v2.data.Index;
 import com.example.yeon1213.myweather_v2.R;
+import com.example.yeon1213.myweather_v2.data.Index;
 
 import java.util.List;
 

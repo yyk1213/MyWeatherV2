@@ -6,8 +6,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 import com.example.yeon1213.myweather_v2.adapter.LifeIndexAdapter;
-import com.example.yeon1213.myweather_v2.data.Index;
 import com.example.yeon1213.myweather_v2.R;
+import com.example.yeon1213.myweather_v2.data.Index;
 
 import java.util.ArrayList;
 import java.util.List;
