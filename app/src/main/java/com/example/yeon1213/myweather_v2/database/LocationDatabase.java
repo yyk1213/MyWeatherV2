@@ -7,7 +7,6 @@ import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
 
 @Database(entities={LocationData.class},version=1)
-@TypeConverters({LocationTypeConverter.class})
 public abstract class LocationDatabase extends RoomDatabase{
 
     private static LocationDatabase INSTANCES;

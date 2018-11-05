@@ -3,6 +3,8 @@ package com.example.yeon1213.myweather_v2.activity;
 import android.app.TimePickerDialog;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.Html;
@@ -26,6 +28,7 @@ import com.example.yeon1213.myweather_v2.database.LocationDAO;
 import com.example.yeon1213.myweather_v2.database.LocationData;
 import com.example.yeon1213.myweather_v2.database.LocationDatabase;
 import com.example.yeon1213.myweather_v2.R;
+import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.Place;
@@ -40,7 +43,7 @@ import com.google.android.gms.tasks.Tasks;
 
 import java.util.Calendar;
 
-public class LifeRadiusSettingActivity extends AppCompatActivity implements View.OnClickListener, ToggleButton.OnCheckedChangeListener, TextWatcher {
+public class LifeRadiusSettingActivity extends AppCompatActivity implements View.OnClickListener, ToggleButton.OnCheckedChangeListener {
 
     private static final LatLngBounds BOUNDS_GRATER_KOREA = new LatLngBounds(new LatLng(35.9078, 127.7669), new LatLng(35.9078, 127.7669));
     public static final String EXTRA_DATA_ID = "com.example.yeon1213.myweather_v2.Activity.location_data_id";
@@ -67,8 +70,7 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
 
     private int mItemId;
     private int mPosition;
-    private Chronometer mChronometer;
-    private boolean mTextCheck = true;
+
     //Day of week buttons
     ToggleButton tb_Sun;
     ToggleButton tb_Mon;
@@ -119,11 +121,38 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
         tb_Sat.setOnCheckedChangeListener(this);
         //places api 클라이언트
         mGeoDataClient = Places.getGeoDataClient(this, null);
-//        mAdapter = new AddressAutoCompleteAdapter(this, mGeoDataClient, BOUNDS_GRATER_KOREA, null);//어댑터 안에 필터 있음
-//        mSearchPlace.setAdapter(mAdapter);
+        mAdapter = new AddressAutoCompleteAdapter(this, mGeoDataClient, BOUNDS_GRATER_KOREA, null);//어댑터 안에 필터 있음
 
         mSearchPlace.setOnItemClickListener(mAutocompleteClickListener);
-        mSearchPlace.addTextChangedListener(this);
+        //mSearchPlace.setAdapter(mAdapter);
+
+        mSearchPlace.addTextChangedListener(new TextWatcher() {
+            Handler handler = new Handler();
+            Runnable runnable;
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                handler.removeCallbacks(runnable);
+                //mSearchPlace.setAdapter(null);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        if(mSearchPlace.getAdapter()==null) {
+                            mSearchPlace.setAdapter(mAdapter);
+                        }
+                    }
+                };
+                handler.postDelayed(runnable, 3000);
+            }
+        });
 
         btn_Time.setOnClickListener(this);
         btn_Clear.setOnClickListener(this);
@@ -374,50 +403,6 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
         }
     };
 
-    @Override
-    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-    }
-
-    @Override
-    public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-    }
-
-    @Override
-    public void afterTextChanged(Editable s) {
-        mTextCheck = true;
-        if (mChronometer == null) {
-
-            mChronometer = new Chronometer(this);
-            mChronometer.setBase(System.currentTimeMillis());
-            mChronometer.start();
-        } else {
-            //입력이 됐다는 뜻이니까 시간측정을 멈춘다.
-            if (mTextCheck) {
-                mChronometer.stop();
-            } else {
-                //마지막 입력일 경우 시간 비교--조건문
-                if (checkTime()) {
-                    mAdapter = new AddressAutoCompleteAdapter(this, mGeoDataClient, BOUNDS_GRATER_KOREA, null);//어댑터 안에 필터 있음
-                    mSearchPlace.setAdapter(mAdapter);
-                }
-            }
-        }
-
-        mTextCheck = false;
-    }
-
-    private boolean checkTime() {
-
-//        try{
-//            Tasks.await()
-//        }
-        if (mChronometer.getBase() < System.currentTimeMillis() + 1000) {
-            return true;
-        }
-        return false;
-    }
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence name) {
         //html 형식을 볼 수 있게 바꾸기
