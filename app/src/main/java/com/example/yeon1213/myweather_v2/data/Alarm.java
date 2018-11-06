@@ -15,7 +15,6 @@ import static android.content.Context.ALARM_SERVICE;
 
 public class Alarm {
 
-    private LocationData locationData;
     private int alarmId;
 
     public boolean setAlarm(Context context, LocationData locationData){

@@ -29,7 +29,7 @@ import android.widget.Toast;
 import com.example.yeon1213.myweather_v2.adapter.MainIndexAdapter;
 import com.example.yeon1213.myweather_v2.R;
 import com.example.yeon1213.weatherdatalibrary.data.interfaces.DataResponseListener;
-import com.example.yeon1213.weatherdatalibrary.data.network.WeatherData;
+import com.example.yeon1213.weatherdatalibrary.data.network.WeatherManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
     private RecyclerView.LayoutManager lay_MainIndex;
 
     private List<String> mRecyclerLivingData;
-    private WeatherData mWeatherData;
+    private WeatherManager mWeatherData;
     private double mLatitude, mLongitude;
     private String mBeforeAddressCode;
 
@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
     public void getData() {
 
-        mWeatherData = new WeatherData(this, mLatitude, mLongitude, this);
+        mWeatherData = new WeatherManager( mLatitude, mLongitude, this);
         //선택 지수 값 가져오기
         mWeatherData.getIndexAPIData();
         //보건 지수 가져오기
@@ -229,25 +229,25 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
         for (Map.Entry<String, ?> entry : indexPref.entrySet()) {
 
             if ((Boolean) entry.getValue() == true) {
-                if (mWeatherData.getIndexData().get(entry.getKey()) != null) {
+                if (mWeatherData.getIndexHashMap().get(entry.getKey()) != null) {
                     switch (entry.getKey()) {
                         case "자외선지수":
-                            mRecyclerLivingData.add("자외선지수: " + mWeatherData.getIndexData().get("자외선지수"));
+                            mRecyclerLivingData.add("자외선지수: " + mWeatherData.getIndexHashMap().get("자외선지수"));
                             break;
                         case "불쾌지수":
-                            mRecyclerLivingData.add("불쾌지수: " + mWeatherData.getIndexData().get("불쾌지수"));
+                            mRecyclerLivingData.add("불쾌지수: " + mWeatherData.getIndexHashMap().get("불쾌지수"));
                             break;
                         case "열지수":
-                            mRecyclerLivingData.add("열지수: " + mWeatherData.getIndexData().get("열지수"));
+                            mRecyclerLivingData.add("열지수: " + mWeatherData.getIndexHashMap().get("열지수"));
                             break;
                         case "체감온도":
-                            mRecyclerLivingData.add("체감온도: " + mWeatherData.getIndexData().get("체감온도"));
+                            mRecyclerLivingData.add("체감온도: " + mWeatherData.getIndexHashMap().get("체감온도"));
                             break;
                         case "세차지수":
-                            mRecyclerLivingData.add("세차지수: " + mWeatherData.getIndexData().get("세차지수"));
+                            mRecyclerLivingData.add("세차지수: " + mWeatherData.getIndexHashMap().get("세차지수"));
                             break;
                         case "빨래지수":
-                            mRecyclerLivingData.add("빨래지수: " + mWeatherData.getIndexData().get("빨래지수"));
+                            mRecyclerLivingData.add("빨래지수: " + mWeatherData.getIndexHashMap().get("빨래지수"));
                             break;
                     }
                 }
@@ -276,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements DataResponseListe
 
         if (resultCode == RESULT_OK) {
 
-            mWeatherData.getIndexData();
+            mWeatherData.getIndexHashMap();
             checkPreference();
             //mWeatherData.getIndexData(mLatitude, mLongitude);
         }

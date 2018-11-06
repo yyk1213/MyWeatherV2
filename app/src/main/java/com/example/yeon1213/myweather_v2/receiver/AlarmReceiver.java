@@ -15,7 +15,7 @@ import com.example.yeon1213.myweather_v2.database.LocationDatabase;
 
 import com.example.yeon1213.myweather_v2.R;
 import com.example.yeon1213.weatherdatalibrary.data.interfaces.DataResponseListener;
-import com.example.yeon1213.weatherdatalibrary.data.network.WeatherData;
+import com.example.yeon1213.weatherdatalibrary.data.network.WeatherManager;
 
 import static com.example.yeon1213.myweather_v2.activity.MainActivity.EXTRA_LATITUDE;
 import static com.example.yeon1213.myweather_v2.activity.MainActivity.EXTRA_LONGITUDE;
@@ -34,7 +34,7 @@ public class AlarmReceiver extends BroadcastReceiver implements DataResponseList
     private Notification mNotification;
     private PendingIntent mPendingIntent;
 
-    private WeatherData mWeatherData;
+    private WeatherManager mWeatherData;
     private int mId;
 
     @Override
@@ -80,7 +80,7 @@ public class AlarmReceiver extends BroadcastReceiver implements DataResponseList
         double latitude = locationData.getMLatitude();
         double longitude = locationData.getMLongitude();
 
-        mWeatherData = new WeatherData(mContext, latitude,longitude,this);
+        mWeatherData = new WeatherManager(latitude,longitude,this);
 
         mLocationName = locationData.getMLocation_name();
 
