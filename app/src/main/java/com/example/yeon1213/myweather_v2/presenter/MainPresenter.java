@@ -73,7 +73,7 @@ public class MainPresenter implements MainPresenterInterface, ModelListener, Dat
 
         if (mIndexData != null) {
             for (int i = 0; i < checkValue.size(); i++) {
-                value.add(checkValue.get(0) + ": " + mIndexData.get(checkValue.get(i)));
+                value.add(checkValue.get(i) + ": " + mIndexData.get(checkValue.get(i)));
             }
         }
 
