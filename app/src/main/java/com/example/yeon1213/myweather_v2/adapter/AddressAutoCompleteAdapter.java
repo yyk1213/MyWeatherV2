@@ -49,7 +49,7 @@ public class AddressAutoCompleteAdapter extends ArrayAdapter implements Filterab
 
     @Override
     public int getCount() {
-        return mResultList.size();
+        return mResultList==null?0:mResultList.size();
     }
 
     @Nullable

@@ -124,35 +124,44 @@ public class LifeRadiusSettingActivity extends AppCompatActivity implements View
         mAdapter = new AddressAutoCompleteAdapter(this, mGeoDataClient, BOUNDS_GRATER_KOREA, null);//어댑터 안에 필터 있음
 
         mSearchPlace.setOnItemClickListener(mAutocompleteClickListener);
-        //mSearchPlace.setAdapter(mAdapter);
+        mSearchPlace.setAdapter(mAdapter);
 
-        mSearchPlace.addTextChangedListener(new TextWatcher() {
-            Handler handler = new Handler();
-            Runnable runnable;
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                handler.removeCallbacks(runnable);
-                //mSearchPlace.setAdapter(null);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        if(mSearchPlace.getAdapter()==null) {
-                            mSearchPlace.setAdapter(mAdapter);
-                        }
-                    }
-                };
-                handler.postDelayed(runnable, 3000);
-            }
-        });
+//        mSearchPlace.addTextChangedListener(new TextWatcher() {
+//            Handler handler = new Handler();
+//            Runnable runnable;
+//
+//            @Override
+//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence s, int start, int before, int count) {
+//                handler.removeCallbacks(runnable);
+//                mSearchPlace.setAdapter(null);
+//                Log.d("ㅇㅇㅇ","onTextChanged");
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable s) {
+//                runnable = new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        if(mSearchPlace.getAdapter()==null) {
+//                            mSearchPlace.setAdapter(mAdapter);
+//                            Log.d("ㅇㅇㅇ","afterTextChanged="+mAdapter);
+//                            handler.postDelayed(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    mAdapter.notifyDataSetChanged();
+//                                }
+//                            },3000);
+//                        }
+//                    }
+//                };
+//                handler.postDelayed(runnable, 3000);
+//                //Log.d("ㅇㅇㅇ","afterTextChanged");
+//            }
+//        });
 
         btn_Time.setOnClickListener(this);
         btn_Clear.setOnClickListener(this);
