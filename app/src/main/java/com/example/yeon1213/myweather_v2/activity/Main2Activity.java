@@ -1,7 +1,5 @@
 package com.example.yeon1213.myweather_v2.activity;
 
-import android.app.Activity;
-import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,15 +8,10 @@ import android.widget.TextView;
 
 import com.example.yeon1213.myweather_v2.R;
 import com.example.yeon1213.myweather_v2.adapter.MainIndexAdapter;
-import com.example.yeon1213.myweather_v2.interfaces.MainPresenterInterface;
 import com.example.yeon1213.myweather_v2.interfaces.MainView;
-import com.example.yeon1213.myweather_v2.model.MainModel;
 import com.example.yeon1213.myweather_v2.presenter.MainPresenter;
-import com.example.yeon1213.weatherdatalibrary.data.interfaces.DataResponseListener;
 import com.example.yeon1213.weatherdatalibrary.data.network.WeatherManager;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class Main2Activity extends AppCompatActivity implements MainView {

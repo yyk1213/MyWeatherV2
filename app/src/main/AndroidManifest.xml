@@ -25,7 +25,7 @@
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name=".activity.Main2Activity"
+            android:name=".activity.MainActivity"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -46,7 +46,7 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".activity.MainActivity"></activity>
+        <activity android:name=".activity.Main2Activity"></activity>
     </application>
 
 </manifest>
